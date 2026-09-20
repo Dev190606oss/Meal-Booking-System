@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
+
+  <!-- Admin Navigation Header -->
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-weight: 800; font-size: 0.85rem; text-transform: uppercase;">
+          <i class="fa-solid fa-shield-halved"></i> Administrator Control Panel
+        </div>
+        <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;">{% block admin_title %}Management System{% endblock %}</h1>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('customer.home') }}" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-eye"></i> View Live Site
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin Navigation Tabs -->
+    <div style="display: flex; gap: 0.5rem; overflow-x: auto; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+      <a href="{{ url_for('admin.dashboard') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.dashboard' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-gauge-high"></i> Dashboard
+      </a>
+      <a href="{{ url_for('admin.bookings') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.bookings' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-receipt"></i> Bookings
+      </a>
+      <a href="{{ url_for('admin.restaurants') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.restaurants' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-store"></i> Restaurants
+      </a>
+      <a href="{{ url_for('admin.meals') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.meals' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-bowl-food"></i> Meals & Menu
+      </a>
+      <a href="{{ url_for('admin.offers') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.offers' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-tags"></i> Promo Offers
+      </a>
+      <a href="{{ url_for('admin.customers') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.customers' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-users"></i> Customers
+      </a>
+      <a href="{{ url_for('admin.analytics') }}" 
+         class="btn btn-sm {% if request.endpoint == 'admin.analytics' %}btn-primary{% else %}btn-outline{% endif %}" 
+         style="border-radius: var(--radius-full);">
+        <i class="fa-solid fa-chart-pie"></i> SQL Analytics
+      </a>
+    </div>
+  </div>
+
+  <!-- Admin Sub-View -->
+  {% block admin_content %}{% endblock %}
+
+</div>
+{% endblock %}

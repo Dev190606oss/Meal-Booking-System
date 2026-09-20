@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Deals & Offers | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <div style="margin-bottom: 2.5rem; text-align: center; max-width: 650px; margin-left: auto; margin-right: auto;">
+    <span class="badge badge-preparing" style="font-size: 0.85rem; padding: 0.35rem 0.85rem; margin-bottom: 0.75rem;">
+      <i class="fa-solid fa-percent"></i> Save More on Every Meal
+    </span>
+    <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+      Discounts & Offers
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">
+      Verified promotional coupons retrieved in real-time from our MySQL Offer catalog
+    </p>
+  </div>
+
+  <!-- Active Offers Grid -->
+  <div style="margin-bottom: 3.5rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+      <i class="fa-solid fa-fire" style="color: var(--primary);"></i> Available Active Coupons ({{ active_offers|length }})
+    </h2>
+
+    {% if active_offers %}
+      <div class="offers-grid">
+        {% for o in active_offers %}
+          <div class="offer-card" style="border: 2px dashed #fed7aa; background: #fff;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+              <div class="offer-badge" style="background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;">
+                <i class="fa-solid fa-tag"></i> {{ o.code }}
+              </div>
+              <button 
+                type="button" 
+                class="btn btn-outline-primary btn-sm" 
+                style="padding: 0.3rem 0.75rem; font-size: 0.8rem;"
+                onclick="navigator.clipboard.writeText('{{ o.code }}'); showToast('Coupon code {{ o.code }} copied!', 'success');">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+
+            <div class="offer-discount">{{ o.discount_pct }}% FLAT OFF</div>
+            <p class="offer-desc">{{ o.description }}</p>
+
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);">
+              <div>• Min Order Value: <strong>{{ o.min_order_amount|inr }}</strong></div>
+              <div>• Maximum Savings: <strong>{{ o.max_discount|inr }}</strong></div>
+            </div>
+
+            <div class="offer-footer">
+              <span>Valid till: {{ o.valid_to|format_dt('%d %b %Y') }}</span>
+              <a href="{{ url_for('customer.cart') }}" style="color: var(--primary); font-weight: 700;">
+                Apply in Cart &rarr;
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted);">No active coupons available at this time.</p>
+    {% endif %}
+  </div>
+
+  <!-- Expired Offers / DBMS Demonstration -->
+  {% if expired_offers %}
+    <div style="border-top: 1px solid var(--border-color); padding-top: 2.5rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-clock"></i> Expired Coupons (Filtered out by SQL `valid_to < NOW()`)
+      </h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; opacity: 0.65;">
+        {% for eo in expired_offers %}
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 1.25rem; font-size: 0.85rem;">
+            <strong style="text-decoration: line-through;">{{ eo.code }}</strong> - {{ eo.description }} (Expired on {{ eo.valid_to|format_dt('%d %b %Y') }})
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

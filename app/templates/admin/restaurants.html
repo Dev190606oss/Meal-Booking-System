@@ -1,0 +1,197 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_title %}Manage Restaurants (CRUD){% endblock %}
+
+{% block admin_content %}
+<div>
+
+  <!-- Top Action Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h2 style="font-size: 1.35rem; font-weight: 800;">All Registered Restaurants</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Perform CREATE, READ, UPDATE, and DELETE operations directly in MySQL</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal();">
+      <i class="fa-solid fa-plus"></i> Add New Restaurant
+    </button>
+  </div>
+
+  <!-- Restaurants Table -->
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Restaurant</th>
+          <th>Cuisine</th>
+          <th>Location</th>
+          <th>Rating</th>
+          <th>Delivery / Min</th>
+          <th>Status</th>
+          <th>Dishes</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in restaurants %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <img src="{{ r.image_url }}" alt="{{ r.name }}" style="width: 44px; height: 44px; border-radius: var(--radius-md); object-fit: cover;">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.95rem;">{{ r.name }}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">ID: #{{ r.restaurant_id }}</div>
+                </div>
+              </div>
+            </td>
+            <td>{{ r.cuisine }}</td>
+            <td>
+              <span class="badge" style="background: var(--bg-main); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                <i class="fa-solid fa-location-dot"></i> {{ r.location }}
+              </span>
+            </td>
+            <td>
+              <span style="font-weight: 700; color: #b45309;">
+                <i class="fa-solid fa-star"></i> {{ r.rating }}
+              </span>
+            </td>
+            <td style="font-size: 0.85rem;">
+              {{ r.delivery_time_min }}m • {{ r.min_order_value|inr }}
+            </td>
+            <td>
+              {% if r.is_active %}
+                <span class="badge badge-delivered">Active</span>
+              {% else %}
+                <span class="badge badge-cancelled">Closed</span>
+              {% endif %}
+            </td>
+            <td style="font-weight: 700;">{{ r.total_meals }}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.4rem;">
+                <button 
+                  class="btn btn-outline btn-sm" 
+                  title="Edit Restaurant"
+                  onclick="openEditModal({{ r|tojson|forceescape }});">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <form action="{{ url_for('admin.restaurants') }}" method="POST" onsubmit="return confirm('Delete restaurant \'{{ r.name }}\' and all associated meals?');" style="display: inline;">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="restaurant_id" value="{{ r.restaurant_id }}">
+                  <button type="submit" class="btn btn-outline btn-sm" style="color: var(--accent-red); border-color: #fca5a5;" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal for Add/Edit Restaurant -->
+  <div id="restaurantModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: var(--bg-surface); border-radius: var(--radius-xl); padding: 2rem; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 id="modalTitle" style="font-size: 1.35rem; font-weight: 800;">Add New Restaurant</h3>
+        <button onclick="closeModal();" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="restaurantForm" action="{{ url_for('admin.restaurants') }}" method="POST">
+        <input type="hidden" name="action" id="formAction" value="create">
+        <input type="hidden" name="restaurant_id" id="formRestId" value="">
+
+        <div class="form-group">
+          <label class="form-label">Restaurant Name *</label>
+          <input type="text" name="name" id="formName" class="form-control" required placeholder="e.g. Spice Route">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Cuisines Offered *</label>
+            <input type="text" name="cuisine" id="formCuisine" class="form-control" required placeholder="e.g. North Indian, Mughlai">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pune Location *</label>
+            <input type="text" name="location" id="formLocation" class="form-control" required placeholder="e.g. Kothrud">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Est. Delivery Time (Mins) *</label>
+            <input type="number" name="delivery_time_min" id="formDelTime" class="form-control" value="30" min="5" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min. Order Value (₹)</label>
+            <input type="number" step="10" name="min_order_value" id="formMinOrder" class="form-control" value="150" min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cover Image URL</label>
+          <input type="url" name="image_url" id="formImageUrl" class="form-control" placeholder="https://images.unsplash.com/...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Short Description</label>
+          <textarea name="description" id="formDescription" class="form-control" rows="3" placeholder="Brief story about kitchen specials, chef signature..."></textarea>
+        </div>
+
+        <div class="form-group" id="statusGroup" style="display: none;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer;">
+            <input type="checkbox" name="is_active" id="formIsActive" value="1" style="width: 18px; height: 18px; accent-color: var(--accent-green);">
+            <span>Restaurant is Active and Accepting Orders</span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+          <button type="button" onclick="closeModal();" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Save Restaurant</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openAddModal() {
+    document.getElementById("modalTitle").textContent = "Add New Restaurant";
+    document.getElementById("formAction").value = "create";
+    document.getElementById("formRestId").value = "";
+    document.getElementById("formName").value = "";
+    document.getElementById("formCuisine").value = "";
+    document.getElementById("formLocation").value = "";
+    document.getElementById("formDelTime").value = "30";
+    document.getElementById("formMinOrder").value = "150";
+    document.getElementById("formImageUrl").value = "";
+    document.getElementById("formDescription").value = "";
+    document.getElementById("statusGroup").style.display = "none";
+    document.getElementById("modalSubmitBtn").textContent = "Create Restaurant";
+    document.getElementById("restaurantModal").style.display = "flex";
+  }
+
+  function openEditModal(rest) {
+    document.getElementById("modalTitle").textContent = "Edit Restaurant: " + rest.name;
+    document.getElementById("formAction").value = "edit";
+    document.getElementById("formRestId").value = rest.restaurant_id;
+    document.getElementById("formName").value = rest.name;
+    document.getElementById("formCuisine").value = rest.cuisine;
+    document.getElementById("formLocation").value = rest.location;
+    document.getElementById("formDelTime").value = rest.delivery_time_min;
+    document.getElementById("formMinOrder").value = rest.min_order_value;
+    document.getElementById("formImageUrl").value = rest.image_url || "";
+    document.getElementById("formDescription").value = rest.description || "";
+    document.getElementById("statusGroup").style.display = "block";
+    document.getElementById("formIsActive").checked = rest.is_active == 1;
+    document.getElementById("modalSubmitBtn").textContent = "Save Changes";
+    document.getElementById("restaurantModal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("restaurantModal").style.display = "none";
+  }
+</script>
+{% endblock %}

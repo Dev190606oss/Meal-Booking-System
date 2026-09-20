@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meal.name }} | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+
+  <!-- Breadcrumb -->
+  <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem;">
+    <a href="{{ url_for('customer.home') }}">Home</a>
+    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
+    <a href="{{ url_for('customer.meals') }}">Meals</a>
+    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
+    <a href="{{ url_for('customer.meals', category=meal.category) }}">{{ meal.category }}</a>
+    <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem;"></i>
+    <span style="color: var(--text-primary); font-weight: 600;">{{ meal.name }}</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: start; margin-bottom: 4rem;">
+    <!-- Meal Image Cover -->
+    <div style="border-radius: var(--radius-xl); overflow: hidden; height: 420px; box-shadow: var(--shadow-lg); background: #e2e8f0;">
+      <img src="{{ meal.image_url }}" alt="{{ meal.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+
+    <!-- Details Info -->
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+        {% if meal.is_veg %}
+          <span style="display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent-green); font-weight: 700; font-size: 0.85rem;">
+            <span class="veg-icon"></span> PURE VEG
+          </span>
+        {% else %}
+          <span style="display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent-red); font-weight: 700; font-size: 0.85rem;">
+            <span class="non-veg-icon"></span> NON-VEG
+          </span>
+        {% endif %}
+
+        <span style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 0.2rem 0.65rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">
+          {{ meal.category }}
+        </span>
+      </div>
+
+      <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem; line-height: 1.2;">
+        {{ meal.name }}
+      </h1>
+
+      <div style="display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem;">
+        <div style="font-size: 1rem; font-weight: 700; color: #b45309; display: flex; align-items: center; gap: 0.35rem;">
+          <i class="fa-solid fa-star"></i> {{ meal.rating }} Rating
+        </div>
+        <span style="color: var(--border-color);">|</span>
+        <div style="font-size: 0.95rem; color: var(--text-secondary);">
+          Prepared by: <a href="{{ url_for('customer.restaurant_detail', restaurant_id=meal.restaurant_id) }}" style="font-weight: 700; color: var(--primary);">{{ meal.restaurant_name }}</a> ({{ meal.restaurant_location }})
+        </div>
+      </div>
+
+      <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1.5rem;">
+        {{ meal.price|inr }}
+      </div>
+
+      <p style="font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 2rem;">
+        {{ meal.description }}
+      </p>
+
+      <!-- Add to Cart Action -->
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); max-width: 420px;">
+        {% if meal.is_available %}
+          <form action="{{ url_for('customer.cart_add') }}" method="POST" style="display: flex; gap: 1rem; align-items: center;">
+            <input type="hidden" name="meal_id" value="{{ meal.meal_id }}">
+            <div style="width: 100px;">
+              <select name="quantity" class="form-control" style="font-weight: 700;">
+                <option value="1">1 Qty</option>
+                <option value="2">2 Qty</option>
+                <option value="3">3 Qty</option>
+                <option value="4">4 Qty</option>
+                <option value="5">5 Qty</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <span>Add to Cart</span>
+            </button>
+          </form>
+        {% else %}
+          <div style="color: var(--accent-red); font-weight: 700; text-align: center;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Currently Unavailable
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Reviews Section -->
+  <div style="border-top: 1px solid var(--border-color); padding-top: 3rem;">
+    <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 1.5rem;">
+      <i class="fa-solid fa-comments" style="color: var(--primary);"></i> Customer Reviews ({{ reviews|length }})
+    </h3>
+
+    {% if reviews %}
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+        {% for r in reviews %}
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 700; font-size: 0.95rem;">{{ r.customer_name }}</span>
+              <div style="color: #fbbf24; font-size: 0.85rem;">
+                {% for star in range(r.rating) %}
+                  <i class="fa-solid fa-star"></i>
+                {% endfor %}
+              </div>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5;">
+              "{{ r.comment }}"
+            </p>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;">
+              Reviewed on {{ r.created_at|format_dt('%b %d, %Y') }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.95rem;">No verified reviews yet for this meal. Be the first to order and review!</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

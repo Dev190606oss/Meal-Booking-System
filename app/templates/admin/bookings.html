@@ -1,0 +1,104 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_title %}Manage Bookings & Order Lifecycle{% endblock %}
+
+{% block admin_content %}
+<div>
+
+  <!-- Filter Bar -->
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+    <div>
+      <h2 style="font-size: 1.35rem; font-weight: 800;">All Customer Bookings ({{ bookings|length }})</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Advance order statuses along the preparation & delivery pipeline</p>
+    </div>
+
+    <!-- Status Filter Buttons -->
+    <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
+      <a href="{{ url_for('admin.bookings') }}" class="btn btn-sm {% if not selected_status %}btn-primary{% else %}btn-outline{% endif %}">
+        All
+      </a>
+      {% for st in statuses %}
+        <a href="{{ url_for('admin.bookings', status=st) }}" class="btn btn-sm {% if selected_status == st %}btn-primary{% else %}btn-outline{% endif %}">
+          {{ st }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Kitchen</th>
+          <th>Ordered Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th style="text-align: right;">Update Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td>
+              <strong style="color: var(--primary);">#{{ b.booking_code }}</strong>
+            </td>
+            <td style="font-size: 0.85rem; color: var(--text-muted);">
+              {{ b.booking_date|format_dt }}
+            </td>
+            <td>
+              <div style="font-weight: 700; font-size: 0.9rem;">{{ b.customer_name }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> {{ b.customer_phone }}</div>
+            </td>
+            <td style="font-weight: 600;">{{ b.restaurant_name }}</td>
+            <td style="font-size: 0.85rem; max-width: 260px; line-height: 1.4;">
+              {{ b.item_summary }}
+            </td>
+            <td style="font-weight: 800;">{{ b.total_amount|inr }}</td>
+            <td>
+              <span style="font-size: 0.85rem; font-weight: 600;">
+                {{ b.payment_method }}
+                {% if b.payment_status == 'Paid' %}
+                  <span style="color: var(--accent-green);">(Paid)</span>
+                {% else %}
+                  <span style="color: var(--accent-amber);">(Pending)</span>
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              {% if b.status == 'Delivered' %}
+                <span class="badge badge-delivered">{{ b.status }}</span>
+              {% elif b.status == 'Out for Delivery' %}
+                <span class="badge badge-delivery">{{ b.status }}</span>
+              {% elif b.status == 'Preparing' %}
+                <span class="badge badge-preparing">{{ b.status }}</span>
+              {% elif b.status == 'Confirmed' %}
+                <span class="badge badge-confirmed">{{ b.status }}</span>
+              {% elif b.status == 'Cancelled' %}
+                <span class="badge badge-cancelled">{{ b.status }}</span>
+              {% else %}
+                <span class="badge badge-pending">{{ b.status }}</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <form action="{{ url_for('admin.bookings') }}" method="POST" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                <input type="hidden" name="booking_id" value="{{ b.booking_id }}">
+                <select name="status" class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.8rem; width: auto; font-weight: 600;" onchange="this.form.submit();">
+                  {% for s in statuses %}
+                    <option value="{{ s }}" {% if b.status == s %}selected{% endif %}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

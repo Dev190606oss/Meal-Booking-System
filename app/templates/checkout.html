@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Checkout & Booking</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Confirm delivery details and choose your simulated payment method</p>
+  </div>
+
+  <form action="{{ url_for('customer.checkout') }}" method="POST">
+    <div class="cart-layout">
+      <!-- Left Column: Delivery & Payment Details -->
+      <div>
+        <!-- Delivery Details Card -->
+        <div class="cart-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> 1. Delivery Details
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" value="{{ customer.full_name }}" readonly style="background: var(--bg-main);">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" value="{{ customer.email }}" readonly style="background: var(--bg-main);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Phone Number *</label>
+              <input type="text" name="phone" class="form-control" value="{{ customer.phone }}" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Complete Delivery Address in Pune *</label>
+            <textarea name="delivery_address" class="form-control" rows="3" required placeholder="Flat/House no., building, street, area, Pune...">{{ customer.address }}</textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Special Cooking / Delivery Notes (Optional)</label>
+            <input type="text" name="special_instructions" class="form-control" placeholder="e.g. Please ring doorbell, less spicy, extra napkins">
+          </div>
+        </div>
+
+        <!-- Payment Method Card -->
+        <div class="cart-card">
+          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-credit-card" style="color: var(--primary);"></i> 2. Select Payment Method
+          </h3>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- UPI -->
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);">
+              <input type="radio" name="payment_method" value="UPI" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;"><i class="fa-solid fa-qrcode" style="color: #6366f1; margin-right: 0.35rem;"></i> UPI (Google Pay / PhonePe / Paytm)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Simulated instant payment verification & confirmed order</div>
+              </div>
+            </label>
+
+            <!-- Card -->
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);">
+              <input type="radio" name="payment_method" value="Card" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;"><i class="fa-solid fa-credit-card" style="color: #0ea5e9; margin-right: 0.35rem;"></i> Credit / Debit Card</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Visa, MasterCard, RuPay (Simulated processing)</div>
+              </div>
+            </label>
+
+            <!-- COD -->
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: var(--transition);">
+              <input type="radio" name="payment_method" value="COD" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;"><i class="fa-solid fa-money-bill-wave" style="color: var(--accent-green); margin-right: 0.35rem;"></i> Cash on Delivery (COD)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Pay in cash or UPI QR upon receiving delivery</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Confirmation Recap -->
+      <div>
+        <div class="cart-card" style="position: sticky; top: 90px;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem;">
+            Order Items ({{ cart.total_items }})
+          </h3>
+
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Kitchen: <strong>{{ cart.restaurant_name }}</strong>
+          </div>
+
+          <div style="max-height: 240px; overflow-y: auto; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+            {% for itm in cart['items'] %}
+              <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.6rem;">
+                <div>
+                  {% if itm.is_veg %}
+                    <span class="veg-icon" style="margin-right: 0.2rem;"></span>
+                  {% else %}
+                    <span class="non-veg-icon" style="margin-right: 0.2rem;"></span>
+                  {% endif %}
+                  {{ itm.quantity }}x {{ itm.name }}
+                </div>
+                <div style="font-weight: 700;">{{ itm.subtotal|inr }}</div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="bill-row">
+            <span>Subtotal</span>
+            <span>{{ cart.subtotal|inr }}</span>
+          </div>
+
+          {% if cart.discount > 0 %}
+            <div class="bill-row" style="color: var(--accent-green); font-weight: 600;">
+              <span>Discount</span>
+              <span>-{{ cart.discount|inr }}</span>
+            </div>
+          {% endif %}
+
+          <div class="bill-row">
+            <span>Delivery Fee</span>
+            <span>{{ cart.delivery_fee|inr }}</span>
+          </div>
+
+          <div class="bill-row bill-total">
+            <span>To Pay</span>
+            <span style="color: var(--primary);">{{ cart.grand_total|inr }}</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;">
+            <i class="fa-solid fa-lock"></i>
+            <span>Confirm & Place Booking</span>
+          </button>
+
+          <p style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 1rem;">
+            By placing this order, you confirm acceptance of local kitchen availability and terms.
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

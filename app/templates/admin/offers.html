@@ -1,0 +1,146 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_title %}Manage Promotional Offers (CRUD){% endblock %}
+
+{% block admin_content %}
+<div>
+
+  <!-- Top Action Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h2 style="font-size: 1.35rem; font-weight: 800;">Promotional Coupons & Discounts</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Manage discount percentages, maximum caps, and date validity</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddOfferModal();">
+      <i class="fa-solid fa-plus"></i> Create New Offer
+    </button>
+  </div>
+
+  <!-- Offers Table -->
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Discount</th>
+          <th>Max Cap</th>
+          <th>Min Order</th>
+          <th>Validity Period</th>
+          <th>Status</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in offers %}
+          <tr>
+            <td>
+              <span class="badge" style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; font-weight: 800;">
+                <i class="fa-solid fa-tag"></i> {{ o.code }}
+              </span>
+            </td>
+            <td>{{ o.description }}</td>
+            <td style="font-weight: 800; color: var(--primary);">{{ o.discount_pct }}% OFF</td>
+            <td>{{ o.max_discount|inr }}</td>
+            <td>{{ o.min_order_amount|inr }}</td>
+            <td style="font-size: 0.85rem;">
+              {{ o.valid_from|format_dt('%d %b %Y') }} &rarr; {{ o.valid_to|format_dt('%d %b %Y') }}
+            </td>
+            <td>
+              <form action="{{ url_for('admin.offers') }}" method="POST" style="display: inline;">
+                <input type="hidden" name="action" value="toggle_active">
+                <input type="hidden" name="offer_id" value="{{ o.offer_id }}">
+                {% if o.is_active %}
+                  <button type="submit" class="badge badge-delivered" style="cursor: pointer; border: none;" title="Click to Deactivate">
+                    Active
+                  </button>
+                {% else %}
+                  <button type="submit" class="badge badge-cancelled" style="cursor: pointer; border: none;" title="Click to Activate">
+                    Inactive
+                  </button>
+                {% endif %}
+              </form>
+            </td>
+            <td style="text-align: right;">
+              <form action="{{ url_for('admin.offers') }}" method="POST" onsubmit="return confirm('Delete offer \'{{ o.code }}\'?');" style="display: inline;">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="offer_id" value="{{ o.offer_id }}">
+                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--accent-red); border-color: #fca5a5;" title="Delete">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal for Add Offer -->
+  <div id="offerModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: var(--bg-surface); border-radius: var(--radius-xl); padding: 2rem; width: 100%; max-width: 540px; box-shadow: var(--shadow-xl);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 style="font-size: 1.35rem; font-weight: 800;">Create New Promo Offer</h3>
+        <button onclick="closeOfferModal();" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+
+      <form action="{{ url_for('admin.offers') }}" method="POST">
+        <input type="hidden" name="action" value="create">
+
+        <div class="form-group">
+          <label class="form-label">Coupon Code (e.g. MONSOON30) *</label>
+          <input type="text" name="code" class="form-control" required style="text-transform: uppercase; font-weight: 700;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <input type="text" name="description" class="form-control" required placeholder="e.g. 30% off on all weekend dinner orders">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Discount % *</label>
+            <input type="number" name="discount_pct" class="form-control" required min="1" max="100" value="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Cap (₹)</label>
+            <input type="number" name="max_discount" class="form-control" value="100" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min Cart (₹)</label>
+            <input type="number" name="min_order_amount" class="form-control" value="200" min="0">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Valid From *</label>
+            <input type="datetime-local" name="valid_from" class="form-control" required value="2026-01-01T00:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valid To *</label>
+            <input type="datetime-local" name="valid_to" class="form-control" required value="2027-12-31T23:59">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+          <button type="button" onclick="closeOfferModal();" class="btn btn-outline">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Offer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function openAddOfferModal() {
+    document.getElementById("offerModal").style.display = "flex";
+  }
+  function closeOfferModal() {
+    document.getElementById("offerModal").style.display = "none";
+  }
+</script>
+{% endblock %}

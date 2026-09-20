@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <div style="margin-bottom: 2.5rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Booking History</h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">View all your past and active food orders across Pune</p>
+  </div>
+
+  {% if orders %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      {% for o in orders %}
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <span style="font-weight: 800; font-size: 1.15rem; color: var(--primary);">
+                #{{ o.booking_code }}
+              </span>
+              <span style="color: var(--text-muted); font-size: 0.85rem;">•</span>
+              <span style="color: var(--text-muted); font-size: 0.85rem;">
+                {{ o.booking_date|format_dt }}
+              </span>
+              
+              <!-- Status Badge -->
+              {% if o.status == 'Delivered' %}
+                <span class="badge badge-delivered">{{ o.status }}</span>
+              {% elif o.status == 'Out for Delivery' %}
+                <span class="badge badge-delivery">{{ o.status }}</span>
+              {% elif o.status == 'Preparing' %}
+                <span class="badge badge-preparing">{{ o.status }}</span>
+              {% elif o.status == 'Confirmed' %}
+                <span class="badge badge-confirmed">{{ o.status }}</span>
+              {% elif o.status == 'Cancelled' %}
+                <span class="badge badge-cancelled">{{ o.status }}</span>
+              {% else %}
+                <span class="badge badge-pending">{{ o.status }}</span>
+              {% endif %}
+            </div>
+
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.35rem;">
+              {{ o.restaurant_name }} <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">({{ o.restaurant_location }})</span>
+            </h3>
+
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.5;">
+              <strong>Items:</strong> {{ o.item_summary }}
+            </p>
+
+            <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+              <span>Payment: <strong>{{ o.payment_method }} ({{ o.payment_status }})</strong></span>
+              <span>Total: <strong style="color: var(--text-primary); font-size: 0.95rem;">{{ o.total_amount|inr }}</strong></span>
+            </div>
+          </div>
+
+          <div>
+            <a href="{{ url_for('customer.order_detail', booking_code=o.booking_code) }}" class="btn btn-outline-primary" style="white-space: nowrap;">
+              <span>Order Details</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <h3 class="empty-state-title">No Previous Orders Yet</h3>
+      <p class="empty-state-desc">You haven't placed any bookings with us so far. Ready to try the finest local food?</p>
+      <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Explore Restaurants</span>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

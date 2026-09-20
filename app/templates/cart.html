@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Your Food Cart</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Review your selected items and apply coupons before checking out</p>
+  </div>
+
+  {% if cart['items'] %}
+    <div class="cart-layout">
+      <!-- Left Column: Items List -->
+      <div>
+        <div class="cart-card" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem;">
+            <div>
+              <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Ordering From</span>
+              <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--secondary);">
+                <i class="fa-solid fa-store" style="color: var(--primary); margin-right: 0.35rem;"></i> {{ cart.restaurant_name }}
+              </h3>
+            </div>
+            <form action="{{ url_for('customer.cart_clear') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear your cart?');">
+              <button type="submit" class="btn btn-outline btn-sm" style="color: var(--accent-red); border-color: #fca5a5;">
+                <i class="fa-solid fa-trash-can"></i> Clear Cart
+              </button>
+            </form>
+          </div>
+
+          <!-- Items Rows -->
+          {% for item in cart['items'] %}
+            <div class="cart-item-row">
+              <div class="cart-item-info">
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" class="cart-item-img">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if item.is_veg %}
+                      <span class="veg-icon"></span>
+                    {% else %}
+                      <span class="non-veg-icon"></span>
+                    {% endif %}
+                    <h4 class="cart-item-title">{{ item.name }}</h4>
+                  </div>
+                  <div class="cart-item-price">{{ item.price|inr }} each</div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <!-- Qty Control -->
+                <div class="qty-control">
+                  <button class="qty-btn cart-qty-btn" data-meal-id="{{ item.meal_id }}" data-action="dec" title="Decrease">&minus;</button>
+                  <span class="qty-val" id="qty-{{ item.meal_id }}">{{ item.quantity }}</span>
+                  <button class="qty-btn cart-qty-btn" data-meal-id="{{ item.meal_id }}" data-action="inc" title="Increase">&plus;</button>
+                </div>
+
+                <div style="min-width: 90px; text-align: right; font-weight: 800; font-size: 1.1rem;">
+                  {{ item.subtotal|inr }}
+                </div>
+
+                <form action="{{ url_for('customer.cart_remove') }}" method="POST">
+                  <input type="hidden" name="meal_id" value="{{ item.meal_id }}">
+                  <button type="submit" class="btn btn-outline btn-sm" style="padding: 0.35rem 0.6rem; color: var(--text-light);" title="Remove Item">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <a href="{{ url_for('customer.restaurant_detail', restaurant_id=cart.restaurant_id) }}" class="btn btn-outline" style="font-size: 0.9rem;">
+          <i class="fa-solid fa-plus"></i> Add more items from this restaurant
+        </a>
+      </div>
+
+      <!-- Right Column: Coupons & Bill Summary -->
+      <div>
+        <!-- Coupon Form -->
+        <div class="cart-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-ticket" style="color: var(--primary);"></i> Have a Promo Code?
+          </h3>
+
+          {% if cart.applied_offer %}
+            <div style="background: var(--accent-green-light); border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 800; color: #065f46; font-size: 0.95rem;">
+                  <i class="fa-solid fa-circle-check"></i> {{ cart.applied_offer.code }} APPLIED
+                </div>
+                <div style="font-size: 0.8rem; color: #047857;">
+                  Saved {{ cart.discount|inr }} ({{ cart.applied_offer.discount_pct }}% Off)
+                </div>
+              </div>
+              <form action="{{ url_for('customer.cart_remove_offer') }}" method="POST">
+                <button type="submit" class="btn btn-outline btn-sm" style="background: #fff; font-size: 0.8rem;">Remove</button>
+              </form>
+            </div>
+          {% else %}
+            <form action="{{ url_for('customer.cart_apply_offer') }}" method="POST" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+              <input type="text" name="offer_code" class="form-control" placeholder="e.g. WELCOME50" style="text-transform: uppercase; font-weight: 700;" required>
+              <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.25rem;">Apply</button>
+            </form>
+
+            {% if active_offers %}
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Available Coupons:</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                {% for o in active_offers %}
+                  <button type="button" class="btn btn-outline btn-sm" style="font-size: 0.75rem; border-style: dashed;" onclick="document.querySelector('input[name=offer_code]').value='{{ o.code }}';">
+                    <strong>{{ o.code }}</strong> ({{ o.discount_pct }}% off)
+                  </button>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Bill Details Summary -->
+        <div class="cart-card">
+          <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem;">
+            Order Summary
+          </h3>
+
+          <div class="bill-row">
+            <span>Item Subtotal</span>
+            <span>{{ cart.subtotal|inr }}</span>
+          </div>
+
+          {% if cart.discount > 0 %}
+            <div class="bill-row" style="color: var(--accent-green); font-weight: 600;">
+              <span>Promo Discount ({{ cart.applied_offer.code }})</span>
+              <span>-{{ cart.discount|inr }}</span>
+            </div>
+          {% endif %}
+
+          <div class="bill-row">
+            <span>Standard Delivery Partner Fee</span>
+            <span>{{ cart.delivery_fee|inr }}</span>
+          </div>
+
+          <div class="bill-row bill-total">
+            <span>Grand Total</span>
+            <span style="color: var(--primary);">{{ cart.grand_total|inr }}</span>
+          </div>
+
+          <div style="margin-top: 1.75rem;">
+            <a href="{{ url_for('customer.checkout') }}" class="btn btn-primary btn-block btn-lg">
+              <span>Proceed to Checkout</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+            <i class="fa-solid fa-shield-halved"></i> 100% Safe and Database-Verified Booking
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+      <h3 class="empty-state-title">Your Cart is Currently Empty</h3>
+      <p class="empty-state-desc">Looks like you haven't added any dishes yet. Explore our curated Pune restaurants and treat your appetite!</p>
+      <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Discover Restaurants</span>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

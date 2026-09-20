@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3.5rem; padding-bottom: 5rem; max-width: 480px;">
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 2.5rem; box-shadow: var(--shadow-md);">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
+        <i class="fa-solid fa-utensils"></i>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">Welcome Back</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Sign in to your MealBooking account</p>
+    </div>
+
+    <!-- 1-Click Quick Demo Login Bar -->
+    <div style="background: #f1f5f9; border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.75rem; text-align: center;">
+      <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;">
+        ⚡ Instant Portfolio Evaluation
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+        <a href="{{ url_for('auth.demo_login', role='customer') }}" class="btn btn-outline-primary btn-sm" style="background: #fff;">
+          <i class="fa-solid fa-user"></i> Demo Customer
+        </a>
+        <a href="{{ url_for('auth.demo_login', role='admin') }}" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-shield-halved"></i> Demo Admin
+        </a>
+      </div>
+    </div>
+
+    <!-- Regular Form -->
+    <form action="{{ url_for('auth.login', next=request.args.get('next')) }}" method="POST">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" value="{{ email or '' }}" class="form-control" required placeholder="name@example.com" autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;">
+        <span>Sign In</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div style="margin-top: 1.75rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+      Don't have an account yet? 
+      <a href="{{ url_for('auth.register') }}" style="color: var(--primary); font-weight: 700;">Create one here</a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

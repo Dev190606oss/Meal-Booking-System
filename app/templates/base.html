@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Meal Booking System | Smart Meal Discovery & Booking{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('customer.home') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <span>MealBooking</span>
+      </a>
+
+      <button class="mobile-toggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="{{ url_for('customer.home') }}" class="nav-link {% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('customer.restaurants') }}" class="nav-link {% if request.endpoint == 'customer.restaurants' %}active{% endif %}">Restaurants</a></li>
+        <li><a href="{{ url_for('customer.meals') }}" class="nav-link {% if request.endpoint == 'customer.meals' %}active{% endif %}">Meals</a></li>
+        <li><a href="{{ url_for('customer.offers') }}" class="nav-link {% if request.endpoint == 'customer.offers' %}active{% endif %}">Offers</a></li>
+        {% if current_user.id %}
+          <li><a href="{{ url_for('customer.orders') }}" class="nav-link {% if request.endpoint == 'customer.orders' %}active{% endif %}">My Orders</a></li>
+          <li><a href="{{ url_for('customer.profile') }}" class="nav-link {% if request.endpoint == 'customer.profile' %}active{% endif %}">Profile</a></li>
+          {% if current_user.is_admin %}
+            <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link" style="color: var(--primary); font-weight: 700;"><i class="fa-solid fa-gauge-high"></i> Admin</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+
+      <div class="nav-actions">
+        <a href="{{ url_for('customer.cart') }}" class="cart-btn" aria-label="Shopping Cart">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span>Cart</span>
+          <span class="cart-badge" style="display: {% if cart_count > 0 %}inline-block{% else %}none{% endif %};">
+            {{ cart_count }}
+          </span>
+        </a>
+
+        {% if current_user.id %}
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm" title="Sign Out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Logout</span>
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">Sign In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Notifications -->
+  <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span>{{ message }}</span>
+            <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main View -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand-logo" style="color: #fff; margin-bottom: 1rem;">
+            <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
+            <span>MealBooking</span>
+          </div>
+          <p style="margin-bottom: 1.25rem; font-size: 0.9rem; line-height: 1.6;">
+            Smart Meal Discovery & Booking Platform. A comprehensive database-driven web application built with MySQL and Flask demonstrating relational schema design, advanced queries, triggers, and procedures.
+          </p>
+          <div style="display: flex; gap: 0.75rem; font-size: 1.1rem;">
+            <a href="#" style="color: #94a3b8;"><i class="fa-brands fa-github"></i></a>
+            <a href="#" style="color: #94a3b8;"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="#" style="color: #94a3b8;"><i class="fa-solid fa-database"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('customer.home') }}" class="footer-link">Home</a></li>
+            <li><a href="{{ url_for('customer.restaurants') }}" class="footer-link">Restaurants</a></li>
+            <li><a href="{{ url_for('customer.meals') }}" class="footer-link">All Meals</a></li>
+            <li><a href="{{ url_for('customer.offers') }}" class="footer-link">Deals & Coupons</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Pune Localities</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('customer.restaurants', location='Kothrud') }}" class="footer-link">Kothrud</a></li>
+            <li><a href="{{ url_for('customer.restaurants', location='Baner') }}" class="footer-link">Baner</a></li>
+            <li><a href="{{ url_for('customer.restaurants', location='Viman Nagar') }}" class="footer-link">Viman Nagar</a></li>
+            <li><a href="{{ url_for('customer.restaurants', location='Shivajinagar') }}" class="footer-link">Shivajinagar</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">DBMS Showcase</h4>
+          <ul class="footer-links">
+            <li><span style="color: #cbd5e1; font-size: 0.85rem;">Normalized 3NF Tables</span></li>
+            <li><span style="color: #cbd5e1; font-size: 0.85rem;">Triggers & Procedures</span></li>
+            <li><span style="color: #cbd5e1; font-size: 0.85rem;">Aggregations & Views</span></li>
+            <li><span style="color: #cbd5e1; font-size: 0.85rem;">Integrity Constraints</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Meal Booking System. Built for CSE Portfolio / DBMS Project.</p>
+        <p>Inspired by modern food discovery applications with full SQL backend.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

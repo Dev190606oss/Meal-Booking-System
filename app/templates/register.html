@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 3.5rem; padding-bottom: 5rem; max-width: 520px;">
+
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 2.5rem; box-shadow: var(--shadow-md);">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.4rem;">
+        <i class="fa-solid fa-utensils"></i>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">Create Account</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">Join Pune's premier smart meal booking community</p>
+    </div>
+
+    <form action="{{ url_for('auth.register') }}" method="POST">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" name="full_name" value="{{ form_data.full_name if form_data else '' }}" class="form-control" required placeholder="e.g. Tanmay Patil">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" name="email" value="{{ form_data.email if form_data else '' }}" class="form-control" required placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input type="text" name="phone" value="{{ form_data.phone if form_data else '' }}" class="form-control" required placeholder="e.g. 9822011223">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Delivery Address in Pune *</label>
+        <textarea name="address" class="form-control" rows="2" required placeholder="Apartment / Society, Area, Pune...">{{ form_data.address if form_data else '' }}</textarea>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" class="form-control" required placeholder="Min 6 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input type="password" name="confirm_password" class="form-control" required placeholder="Repeat password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;">
+        <span>Create Account</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div style="margin-top: 1.75rem; text-align: center; font-size: 0.9rem; color: var(--text-muted);">
+      Already have an account? 
+      <a href="{{ url_for('auth.login') }}" style="color: var(--primary); font-weight: 700;">Sign in here</a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

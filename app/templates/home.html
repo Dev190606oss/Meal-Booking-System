@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Meal Booking System | Good food. Simple booking.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-tagline">
+      <i class="fa-solid fa-sparkles"></i>
+      <span>Pune's Smartest Food Discovery Platform</span>
+    </div>
+    <h1 class="hero-title">Good food.<br><span>Simple booking.</span></h1>
+    <p class="hero-subtitle">
+      Explore top-rated local eateries, delicious cuisines, and order fresh meals with seamless database-backed tracking.
+    </p>
+
+    <!-- Search Bar -->
+    <form action="{{ url_for('customer.meals') }}" method="GET" class="hero-search-box">
+      <i class="fa-solid fa-magnifying-glass hero-search-icon"></i>
+      <input type="text" name="q" class="hero-search-input" placeholder="Search for meals, restaurants or cuisines..." required autocomplete="off">
+      <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-full); padding: 0.8rem 1.75rem;">
+        <span>Search</span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<div class="container">
+  <!-- Popular Categories Section -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <h2>Inspiration for your order</h2>
+        <p>Explore freshly curated menus by popular categories</p>
+      </div>
+      <a href="{{ url_for('customer.meals') }}" class="view-all-link">
+        <span>Explore All Meals</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="category-grid">
+      {% for cat in categories %}
+        <a href="{{ url_for('customer.meals', category=cat.name) }}" class="category-card">
+          <img src="{{ cat.image }}" alt="{{ cat.name }}" class="category-thumb" loading="lazy">
+          <span class="category-name">{{ cat.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Active Offers Banner -->
+  {% if active_offers %}
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <h2>Exclusive Offers & Deals</h2>
+        <p>Apply these verified coupon codes at checkout</p>
+      </div>
+      <a href="{{ url_for('customer.offers') }}" class="view-all-link">
+        <span>View All Offers</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="offers-grid">
+      {% for off in active_offers %}
+        <div class="offer-card">
+          <div class="offer-badge">
+            <i class="fa-solid fa-tag"></i>
+            <span>{{ off.code }}</span>
+          </div>
+          <div class="offer-discount">{{ off.discount_pct }}% OFF</div>
+          <p class="offer-desc">{{ off.description }}</p>
+          <div class="offer-footer">
+            <span>Min. Order: ₹{{ off.min_order_amount|int }}</span>
+            <span>Max Disc: ₹{{ off.max_discount|int }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Featured Top-Rated Restaurants -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <h2>Featured Restaurants in Pune</h2>
+        <p>Top-rated local kitchens hand-crafted for high taste & fast delivery</p>
+      </div>
+      <a href="{{ url_for('customer.restaurants') }}" class="view-all-link">
+        <span>All Restaurants</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="restaurant-grid">
+      {% for r in featured_restaurants %}
+        <a href="{{ url_for('customer.restaurant_detail', restaurant_id=r.restaurant_id) }}" class="restaurant-card">
+          <div class="restaurant-img-wrap">
+            <img src="{{ r.image_url }}" alt="{{ r.name }}" loading="lazy">
+            <div class="rating-badge">
+              <i class="fa-solid fa-star"></i>
+              <span>{{ r.rating }}</span>
+            </div>
+            <div class="delivery-badge">
+              <i class="fa-regular fa-clock"></i> {{ r.delivery_time_min }} mins
+            </div>
+          </div>
+          <div class="restaurant-body">
+            <h3 class="restaurant-name">{{ r.name }}</h3>
+            <p class="restaurant-cuisine">{{ r.cuisine }}</p>
+            <div class="restaurant-meta">
+              <span class="meta-item"><i class="fa-solid fa-location-dot"></i> {{ r.location }}</span>
+              <span class="meta-item"><i class="fa-solid fa-bowl-food"></i> {{ r.total_meals }} Meals</span>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Popular Meals Carousel / Grid -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <h2>Popular Dishes Right Now</h2>
+        <p>Trending choices ordered by fellow food lovers in your city</p>
+      </div>
+      <a href="{{ url_for('customer.meals') }}" class="view-all-link">
+        <span>Browse Catalog</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="meal-grid">
+      {% for m in popular_meals %}
+        <div class="meal-card">
+          <div class="meal-img-wrap">
+            <a href="{{ url_for('customer.meal_detail', meal_id=m.meal_id) }}">
+              <img src="{{ m.image_url }}" alt="{{ m.name }}" loading="lazy">
+            </a>
+            <div class="rating-badge">
+              <i class="fa-solid fa-star"></i>
+              <span>{{ m.rating }}</span>
+            </div>
+          </div>
+          <div class="meal-body">
+            <div class="meal-header">
+              <h4 class="meal-title">
+                <a href="{{ url_for('customer.meal_detail', meal_id=m.meal_id) }}">{{ m.name }}</a>
+              </h4>
+              {% if m.is_veg %}
+                <span class="veg-icon" title="Vegetarian"></span>
+              {% else %}
+                <span class="non-veg-icon" title="Non-Vegetarian"></span>
+              {% endif %}
+            </div>
+
+            <div class="meal-restaurant">
+              <i class="fa-solid fa-store"></i>
+              <span>{{ m.restaurant_name }} ({{ m.restaurant_location }})</span>
+            </div>
+
+            <p class="meal-desc">{{ m.description }}</p>
+
+            <div class="meal-footer">
+              <div class="meal-price">{{ m.price|inr }}</div>
+              <button 
+                class="btn btn-outline-primary btn-sm btn-add-cart" 
+                data-meal-id="{{ m.meal_id }}" 
+                data-meal-name="{{ m.name }}">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fff; padding: 3rem; border-radius: var(--radius-xl); text-align: center; margin-bottom: 4rem;">
+    <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem;">Fast, fresh, and reliable dining at your door.</h2>
+    <p style="color: #cbd5e1; max-width: 600px; margin: 0 auto 1.75rem; font-size: 1rem;">
+      Ready to order? Choose your favorite dishes from top restaurants across Pune and track your booking in real time.
+    </p>
+    <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-utensils"></i>
+      <span>Browse Restaurants Now</span>
+    </a>
+  </section>
+</div>
+{% endblock %}

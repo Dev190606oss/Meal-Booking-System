@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Meals | Meal Booking System{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Explore All Dishes</h1>
+    <p style="color: var(--text-muted); font-size: 1rem;">
+      Search and filter through delicious, freshly prepared dishes across Pune
+    </p>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <form action="{{ url_for('customer.meals') }}" method="GET" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm);">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+      
+      <!-- Keyword Search -->
+      <div>
+        <label class="form-label" style="font-size: 0.8rem; text-transform: uppercase;">Search Dishes</label>
+        <div style="position: relative;">
+          <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Dish, ingredient, cuisine..." style="padding-left: 2.5rem;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <label class="form-label" style="font-size: 0.8rem; text-transform: uppercase;">Category</label>
+        <select name="category" class="form-control">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Restaurant Filter -->
+      <div>
+        <label class="form-label" style="font-size: 0.8rem; text-transform: uppercase;">Restaurant</label>
+        <select name="restaurant_id" class="form-control">
+          <option value="">All Restaurants</option>
+          {% for r in restaurants %}
+            <option value="{{ r.restaurant_id }}" {% if selected_restaurant == r.restaurant_id|string %}selected{% endif %}>{{ r.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Sort By -->
+      <div>
+        <label class="form-label" style="font-size: 0.8rem; text-transform: uppercase;">Sort By</label>
+        <select name="sort" class="form-control">
+          <option value="rating_desc" {% if sort_by == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
+          <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+          <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+        </select>
+      </div>
+
+      <!-- Submit & Reset -->
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary" title="Apply Filters">
+          <i class="fa-solid fa-filter"></i> Filter
+        </button>
+        <a href="{{ url_for('customer.meals') }}" class="btn btn-outline" title="Reset Filters">
+          <i class="fa-solid fa-rotate-left"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Veg Only Checkbox Bar -->
+    <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+      <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.95rem; font-weight: 600;">
+        <input type="checkbox" name="veg" value="1" {% if veg_only == '1' %}checked{% endif %} onchange="this.form.submit();" style="width: 18px; height: 18px; accent-color: var(--accent-green);">
+        <span class="veg-icon" style="margin-right: 0.25rem;"></span> Vegetarian Only
+      </label>
+
+      <span style="color: var(--text-muted); font-size: 0.85rem;">
+        Showing {{ meals|length }} matching dishes
+      </span>
+    </div>
+  </form>
+
+  <!-- Meal Grid -->
+  {% if meals %}
+    <div class="meal-grid">
+      {% for m in meals %}
+        <div class="meal-card">
+          <div class="meal-img-wrap">
+            <a href="{{ url_for('customer.meal_detail', meal_id=m.meal_id) }}">
+              <img src="{{ m.image_url }}" alt="{{ m.name }}" loading="lazy">
+            </a>
+            <div class="rating-badge">
+              <i class="fa-solid fa-star"></i> {{ m.rating }}
+            </div>
+          </div>
+          <div class="meal-body">
+            <div class="meal-header">
+              <h4 class="meal-title">
+                <a href="{{ url_for('customer.meal_detail', meal_id=m.meal_id) }}">{{ m.name }}</a>
+              </h4>
+              {% if m.is_veg %}
+                <span class="veg-icon" title="Vegetarian"></span>
+              {% else %}
+                <span class="non-veg-icon" title="Non-Vegetarian"></span>
+              {% endif %}
+            </div>
+
+            <div class="meal-restaurant">
+              <i class="fa-solid fa-store"></i>
+              <a href="{{ url_for('customer.restaurant_detail', restaurant_id=m.restaurant_id) }}" style="color: inherit; text-decoration: underline;">
+                {{ m.restaurant_name }}
+              </a>
+              <span>• {{ m.restaurant_location }}</span>
+            </div>
+
+            <p class="meal-desc">{{ m.description }}</p>
+
+            <div class="meal-footer">
+              <div class="meal-price">{{ m.price|inr }}</div>
+              <button 
+                class="btn btn-outline-primary btn-sm btn-add-cart" 
+                data-meal-id="{{ m.meal_id }}" 
+                data-meal-name="{{ m.name }}">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+      <h3 class="empty-state-title">No Dishes Found</h3>
+      <p class="empty-state-desc">We couldn't find any meals matching your criteria. Try loosening your search terms or category selection.</p>
+      <a href="{{ url_for('customer.meals') }}" class="btn btn-primary">
+        <span>Clear All Filters</span>
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

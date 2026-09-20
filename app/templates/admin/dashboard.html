@@ -1,0 +1,126 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_title %}Operational Dashboard{% endblock %}
+
+{% block admin_content %}
+<div>
+
+  <!-- Aggregate Metric Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+    <!-- Revenue -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); border-top: 4px solid var(--primary);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem;">Total Revenue</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: var(--primary);">{{ stats.total_revenue|inr }}</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Excl. cancelled orders</div>
+    </div>
+
+    <!-- Bookings -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); border-top: 4px solid #3b82f6;">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem;">Total Bookings</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #1e3a8a;">{{ stats.total_bookings }}</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Lifetime customer orders</div>
+    </div>
+
+    <!-- Restaurants -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); border-top: 4px solid var(--accent-green);">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem;">Active Kitchens</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #065f46;">{{ stats.total_restaurants }}</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Across Pune localities</div>
+    </div>
+
+    <!-- Meals -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); border-top: 4px solid #8b5cf6;">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem;">Available Dishes</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #4c1d95;">{{ stats.total_meals }}</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">In 6 cuisine categories</div>
+    </div>
+
+    <!-- Customers -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); border-top: 4px solid #f59e0b;">
+      <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.35rem;">Customers</div>
+      <div style="font-size: 1.85rem; font-weight: 800; color: #92400e;">{{ stats.total_customers }}</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Verified user accounts</div>
+    </div>
+  </div>
+
+  <!-- Main Content Row -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <!-- Recent Bookings Table -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 800;">Recent Customer Bookings</h3>
+        <a href="{{ url_for('admin.bookings') }}" class="view-all-link" style="font-size: 0.85rem;">View All</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Kitchen</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in recent_bookings %}
+              <tr>
+                <td><strong>#{{ b.booking_code }}</strong></td>
+                <td>{{ b.customer_name }}</td>
+                <td>{{ b.restaurant_name }}</td>
+                <td style="font-weight: 700;">{{ b.total_amount|inr }}</td>
+                <td>
+                  {% if b.status == 'Delivered' %}
+                    <span class="badge badge-delivered">{{ b.status }}</span>
+                  {% elif b.status == 'Out for Delivery' %}
+                    <span class="badge badge-delivery">{{ b.status }}</span>
+                  {% elif b.status == 'Preparing' %}
+                    <span class="badge badge-preparing">{{ b.status }}</span>
+                  {% elif b.status == 'Confirmed' %}
+                    <span class="badge badge-confirmed">{{ b.status }}</span>
+                  {% elif b.status == 'Cancelled' %}
+                    <span class="badge badge-cancelled">{{ b.status }}</span>
+                  {% else %}
+                    <span class="badge badge-pending">{{ b.status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('admin.bookings') }}?status={{ b.status }}" class="btn btn-outline btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                    Manage
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Status Breakdown Widget -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem;">Bookings by Status</h3>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+        {% for sc in status_counts %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-main); border-radius: var(--radius-md);">
+            <span style="font-weight: 600; font-size: 0.9rem;">{{ sc.status }}</span>
+            <span class="badge {% if sc.status == 'Delivered' %}badge-delivered{% elif sc.status == 'Confirmed' %}badge-confirmed{% elif sc.status == 'Preparing' %}badge-preparing{% else %}badge-pending{% endif %}" style="font-size: 0.85rem;">
+              {{ sc.count }}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); text-align: center;">
+        <a href="{{ url_for('admin.analytics') }}" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>View Deep SQL Analytics</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
