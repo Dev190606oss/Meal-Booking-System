@@ -9,10 +9,15 @@ class Config:
     
     # Database Configuration
     DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-    DB_PORT = int(os.getenv("DB_PORT", 3307))
+    DB_PORT = int(os.getenv("DB_PORT", 3306))
     DB_USER = os.getenv("DB_USER", "root")
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
     DB_NAME = os.getenv("DB_NAME", "meal_booking_db")
+
+    # Server Configuration
+    HOST = os.getenv("HOST", "127.0.0.1")
+    PORT = int(os.getenv("PORT", 5000))
+    DEBUG = os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true", "yes")
 
     # Delivery & Fee Defaults
     DELIVERY_FEE = 40.00

@@ -7,7 +7,9 @@ import pymysql
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app import create_app
-from app.db import query_db, execute_db, call_proc, get_db_connection
+from app.config import Config
+from app.db import query_db, execute_db, call_proc, get_db_connection, test_db_connection
+from database.init_db import parse_sql_file, check_database
 
 class MealBookingSystemTestCase(unittest.TestCase):
     def setUp(self):
@@ -340,6 +342,76 @@ class MealBookingSystemTestCase(unittest.TestCase):
         cust_stats = call_proc("sp_get_customer_profile_stats", (1,))
         self.assertIsNotNone(cust_stats)
         self.assertEqual(cust_stats[0]["customer_id"], 1)
+
+    def test_15_test_db_connection_diagnostic(self):
+        """Pre-flight database diagnostic check and table verification."""
+        diag = test_db_connection()
+        self.assertTrue(diag["connected"])
+        self.assertTrue(diag["database_exists"])
+        self.assertEqual(diag["table_count"], 9)
+        self.assertIn("Customer", diag["tables"])
+        self.assertIn("Restaurant", diag["tables"])
+        self.assertIn("Meal", diag["tables"])
+        self.assertIn("Booking", diag["tables"])
+        self.assertIn("Booking_Item", diag["tables"])
+        self.assertIn("Payment", diag["tables"])
+        self.assertIn("Offer", diag["tables"])
+        self.assertIn("Staff", diag["tables"])
+        self.assertIn("Feedback", diag["tables"])
+
+    def test_16_views_direct_queries(self):
+        """Direct queries on database views."""
+        # 1. v_restaurant_summary
+        rest_summary = query_db("SELECT * FROM v_restaurant_summary")
+        self.assertGreater(len(rest_summary), 0)
+        self.assertIn("avg_meal_price", rest_summary[0])
+        self.assertIn("total_meals", rest_summary[0])
+
+        # 2. v_popular_meals
+        popular = query_db("SELECT * FROM v_popular_meals")
+        self.assertGreater(len(popular), 0)
+        self.assertIn("total_revenue_generated", popular[0])
+        self.assertIn("total_units_sold", popular[0])
+
+        # 3. v_customer_stats
+        cust_stats = query_db("SELECT * FROM v_customer_stats WHERE customer_id = 1", one=True)
+        self.assertIsNotNone(cust_stats)
+        self.assertIn("total_bookings", cust_stats)
+        self.assertIn("total_spent", cust_stats)
+
+        # 4. v_booking_summary
+        booking_summary = query_db("SELECT * FROM v_booking_summary")
+        self.assertGreater(len(booking_summary), 0)
+        self.assertIn("booking_code", booking_summary[0])
+
+    def test_17_env_example_matches_config(self):
+        """Verify .env.example contains necessary database and application variables."""
+        env_example_path = os.path.join(os.path.dirname(__file__), "..", ".env.example")
+        self.assertTrue(os.path.exists(env_example_path))
+        with open(env_example_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        for required_var in ["DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "SECRET_KEY", "HOST", "PORT"]:
+            self.assertIn(required_var, content, f"Missing {required_var} in .env.example")
+
+    def test_18_init_db_parser(self):
+        """Verify SQL parser splits triggers and procedures respecting DELIMITER commands."""
+        base_dir = os.path.join(os.path.dirname(__file__), "..")
+        triggers_file = os.path.join(base_dir, "database", "triggers.sql")
+        procs_file = os.path.join(base_dir, "database", "procedures.sql")
+
+        trig_stmts = parse_sql_file(triggers_file)
+        self.assertGreaterEqual(len(trig_stmts), 3)
+
+        proc_stmts = parse_sql_file(procs_file)
+        self.assertGreaterEqual(len(proc_stmts), 4)
+
+        report = check_database()
+        self.assertTrue(report["connected"])
+        self.assertTrue(report["database_exists"])
+        self.assertEqual(len(report["tables"]), 9)
+        self.assertEqual(len(report["views"]), 4)
+        self.assertEqual(len(report["triggers"]), 3)
+        self.assertEqual(len(report["procedures"]), 4)
 
 if __name__ == "__main__":
     unittest.main()

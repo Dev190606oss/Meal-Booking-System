@@ -2,6 +2,12 @@
 -- Meal Booking System - Relational Database Schema
 -- Database Management System (DBMS) Project
 -- ==========================================================
+-- NOTE ON DATA SAFETY:
+-- Executing this script drops existing tables and views in
+-- 'meal_booking_db' to ensure clean schema recreation.
+-- To initialize safely without accidental data loss, use:
+--   python database/init_db.py
+-- ==========================================================
 
 CREATE DATABASE IF NOT EXISTS meal_booking_db
     CHARACTER SET utf8mb4
@@ -10,8 +16,13 @@ CREATE DATABASE IF NOT EXISTS meal_booking_db
 USE meal_booking_db;
 
 -- ----------------------------------------------------------
--- 1. CUSTOMER TABLE
+-- 0. CLEANUP EXISTING VIEWS AND TABLES (Reverse Dependency)
 -- ----------------------------------------------------------
+DROP VIEW IF EXISTS v_booking_summary;
+DROP VIEW IF EXISTS v_customer_stats;
+DROP VIEW IF EXISTS v_popular_meals;
+DROP VIEW IF EXISTS v_restaurant_summary;
+
 DROP TABLE IF EXISTS Feedback;
 DROP TABLE IF EXISTS Payment;
 DROP TABLE IF EXISTS Booking_Item;

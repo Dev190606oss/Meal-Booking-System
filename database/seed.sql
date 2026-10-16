@@ -11,7 +11,7 @@ USE meal_booking_db;
 -- Password hash generated via werkzeug.security generate_password_hash('password123')
 SET @default_pass = 'scrypt:32768:8:1$xtVyNHlOOBpeoDGL$6414b70b01492e84dbfd1213cf980c53937bac0b2a19a1171d17056c42200c475e60392c5d30dd0310b3b710e92505a3da1d47dee823ec04b079af8c28f5ab41';
 
-INSERT INTO Customer (customer_id, full_name, email, password_hash, phone, address, is_admin) VALUES
+INSERT IGNORE INTO Customer (customer_id, full_name, email, password_hash, phone, address, is_admin) VALUES
 (1, 'Rahul Sharma', 'rahul.sharma@example.com', @default_pass, '9822012345', 'Flat 402, Mayur Colony, Kothrud, Pune - 411038', 0),
 (2, 'Priya Kulkarni', 'priya.kulkarni@example.com', @default_pass, '9822056789', 'B-12, Rohan Tarang, Wakad Road, Baner, Pune - 411045', 0),
 (3, 'Amit Deshmukh', 'amit.deshmukh@example.com', @default_pass, '9822098765', 'Row House 4, Nyati Estate, Viman Nagar, Pune - 411014', 0),
@@ -21,7 +21,7 @@ INSERT INTO Customer (customer_id, full_name, email, password_hash, phone, addre
 -- ----------------------------------------------------------
 -- 2. SEED RESTAURANTS
 -- ----------------------------------------------------------
-INSERT INTO Restaurant (restaurant_id, name, cuisine, location, rating, is_active, image_url, description, delivery_time_min, min_order_value) VALUES
+INSERT IGNORE INTO Restaurant (restaurant_id, name, cuisine, location, rating, is_active, image_url, description, delivery_time_min, min_order_value) VALUES
 (1, 'Spice Route', 'North Indian, Mughlai', 'Kothrud', 4.8, 1, 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&q=80', 'Authentic North Indian rich gravies, charcoal tandoor specials, and slow-cooked curries prepared using royal heritage recipes.', 30, 200.00),
 (2, 'Urban Tadka', 'North Indian, Street Food', 'Baner', 4.6, 1, 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80', 'Vibrant Punjabi dhabha taste served in a modern urban bistro. Known for buttery naans, spicy paneer dishes, and refreshing lassis.', 35, 150.00),
 (3, 'Curry Corner', 'South Indian, Coastal', 'Karve Nagar', 4.7, 1, 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&q=80', 'Crispy dosas, fluffy thatte idlis, coconut-infused coastal curries, and aromatic filter coffee served hot from the pot.', 25, 100.00),
@@ -34,7 +34,7 @@ INSERT INTO Restaurant (restaurant_id, name, cuisine, location, rating, is_activ
 -- ----------------------------------------------------------
 -- 3. SEED MEALS
 -- ----------------------------------------------------------
-INSERT INTO Meal (meal_id, restaurant_id, name, category, price, is_veg, is_available, rating, description, image_url) VALUES
+INSERT IGNORE INTO Meal (meal_id, restaurant_id, name, category, price, is_veg, is_available, rating, description, image_url) VALUES
 -- Spice Route (1)
 (1, 1, 'Paneer Butter Masala', 'North Indian', 280.00, 1, 1, 4.8, 'Cottage cheese cubes simmered in a velvety tomato and cashew butter gravy, finished with kasuri methi.', 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&q=80'),
 (2, 1, 'Dal Makhani', 'North Indian', 240.00, 1, 1, 4.9, 'Black lentils slow-cooked overnight on charcoal with butter and cream for an authentic smoky flavour.', 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&q=80'),
@@ -85,7 +85,7 @@ INSERT INTO Meal (meal_id, restaurant_id, name, category, price, is_veg, is_avai
 -- ----------------------------------------------------------
 -- 4. SEED OFFERS
 -- ----------------------------------------------------------
-INSERT INTO Offer (offer_id, code, description, discount_pct, max_discount, min_order_amount, valid_from, valid_to, is_active) VALUES
+INSERT IGNORE INTO Offer (offer_id, code, description, discount_pct, max_discount, min_order_amount, valid_from, valid_to, is_active) VALUES
 (1, 'WELCOME50', '50% off on your first booking up to ₹100', 50, 100.00, 199.00, '2026-01-01 00:00:00', '2027-12-31 23:59:59', 1),
 (2, 'FIRSTORDER', 'Flat 20% discount on entire food cart', 20, 150.00, 250.00, '2026-01-01 00:00:00', '2027-12-31 23:59:59', 1),
 (3, 'WEEKEND20', 'Weekend special 20% off on orders above ₹300', 20, 120.00, 300.00, '2026-01-01 00:00:00', '2027-12-31 23:59:59', 1),
@@ -95,7 +95,7 @@ INSERT INTO Offer (offer_id, code, description, discount_pct, max_discount, min_
 -- ----------------------------------------------------------
 -- 5. SEED STAFF
 -- ----------------------------------------------------------
-INSERT INTO Staff (staff_id, name, role, phone, email, restaurant_id, is_active) VALUES
+INSERT IGNORE INTO Staff (staff_id, name, role, phone, email, restaurant_id, is_active) VALUES
 (1, 'Suresh Jadhav', 'Manager', '9822100001', 'suresh.j@spiceroute.com', 1, 1),
 (2, 'Ganesh More', 'Head Chef', '9822100002', 'ganesh.m@spiceroute.com', 1, 1),
 (3, 'Vikram Shinde', 'Delivery Partner', '9822100003', 'vikram.s@logistics.com', NULL, 1),
@@ -107,43 +107,44 @@ INSERT INTO Staff (staff_id, name, role, phone, email, restaurant_id, is_active)
 -- 6. SEED BOOKINGS, ITEMS, PAYMENTS, FEEDBACK
 -- ----------------------------------------------------------
 -- Order 1: Delivered order from Spice Route for Customer Rahul Sharma
-INSERT INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
+INSERT IGNORE INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
 (1, 'MB1001', 1, 1, '2026-09-15 13:30:00', 'Delivered', 520.00, 100.00, 40.00, 460.00, 'Flat 402, Mayur Colony, Kothrud, Pune - 411038', 'UPI', 'Paid', 1, 'Please send extra green chutney and onions.');
 
-INSERT INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
+INSERT IGNORE INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
 (1, 1, 1, 1, 280.00, 280.00), -- Paneer Butter Masala
 (2, 1, 2, 1, 240.00, 240.00); -- Dal Makhani
 
-INSERT INTO Payment (payment_id, booking_id, payment_method, amount, payment_status, transaction_ref, payment_date) VALUES
+INSERT IGNORE INTO Payment (payment_id, booking_id, payment_method, amount, payment_status, transaction_ref, payment_date) VALUES
 (1, 1, 'UPI', 460.00, 'Paid', 'TXN_UPI_9837192837', '2026-09-15 13:31:12');
 
-INSERT INTO Feedback (feedback_id, customer_id, booking_id, meal_id, rating, comment, created_at) VALUES
+INSERT IGNORE INTO Feedback (feedback_id, customer_id, booking_id, meal_id, rating, comment, created_at) VALUES
 (1, 1, 1, 1, 5, 'The paneer butter masala was exceptionally rich and fresh. Arrived piping hot!', '2026-09-15 14:45:00');
 
 -- Order 2: Delivered order from Pune Bites for Customer Priya Kulkarni
-INSERT INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
+INSERT IGNORE INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
 (2, 'MB1002', 2, 6, '2026-09-16 09:15:00', 'Delivered', 345.00, 51.75, 40.00, 333.25, 'B-12, Rohan Tarang, Baner, Pune - 411045', 'Card', 'Paid', 4, 'Extra spicy rassa for the misal.');
 
-INSERT INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
-(3, 2, 22, 2, 120.00, 240.00), -- Misal Pav x 2
+INSERT IGNORE INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
+(3, 2, 22, 1, 120.00, 120.00), -- Misal Pav
 (4, 2, 23, 1, 95.00, 95.00),   -- Kothimbir Vadi
-(5, 2, 25, 1, 60.00, 60.00);   -- Sol Kadhi (Wait: 240 + 95 + 60 = 395? Let's check: 2*120=240, 95=95 -> subtotal 335, let's keep exact)
+(5, 2, 24, 1, 130.00, 130.00); -- Puran Poli with Desi Ghee
 
 -- Order 3: Out for Delivery order from Curry Corner for Rahul Sharma
-INSERT INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
+INSERT IGNORE INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
 (3, 'MB1003', 1, 3, '2026-09-20 14:00:00', 'Out for Delivery', 300.00, 60.00, 40.00, 280.00, 'Flat 402, Mayur Colony, Kothrud, Pune - 411038', 'COD', 'Pending', 3, 'Please ring the doorbell.');
 
-INSERT INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
-(6, 3, 10, 2, 130.00, 260.00), -- Mysore Masala Dosa x 2
-(7, 3, 13, 2, 60.00, 120.00);  -- Filter Coffee x 2
+INSERT IGNORE INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
+(6, 3, 10, 1, 130.00, 130.00), -- Mysore Masala Dosa
+(7, 3, 11, 1, 110.00, 110.00), -- Ghee Podi Idli
+(8, 3, 13, 1, 60.00, 60.00);   -- Filter Coffee
 
 -- Order 4: Confirmed order from Urban Tadka for Amit Deshmukh
-INSERT INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
+INSERT IGNORE INTO Booking (booking_id, booking_code, customer_id, restaurant_id, booking_date, status, subtotal, discount_amount, delivery_fee, total_amount, delivery_address, payment_method, payment_status, offer_id, special_instructions) VALUES
 (4, 'MB1004', 3, 2, '2026-09-20 15:00:00', 'Confirmed', 480.00, 0.00, 40.00, 520.00, 'Row House 4, Nyati Estate, Viman Nagar, Pune - 411014', 'UPI', 'Paid', NULL, 'Less oil in gravies please.');
 
-INSERT INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
-(8, 4, 6, 1, 210.00, 210.00), -- Amritsari Kulcha
-(9, 4, 7, 1, 270.00, 270.00); -- Kadhai Paneer
+INSERT IGNORE INTO Booking_Item (booking_item_id, booking_id, meal_id, quantity, price_at_booking, subtotal) VALUES
+(9, 4, 6, 1, 210.00, 210.00),  -- Amritsari Kulcha
+(10, 4, 7, 1, 270.00, 270.00); -- Kadhai Paneer
 
-INSERT INTO Payment (payment_id, booking_id, payment_method, amount, payment_status, transaction_ref, payment_date) VALUES
+INSERT IGNORE INTO Payment (payment_id, booking_id, payment_method, amount, payment_status, transaction_ref, payment_date) VALUES
 (2, 4, 'UPI', 520.00, 'Paid', 'TXN_UPI_8830182741', '2026-09-20 15:01:45');
