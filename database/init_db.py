@@ -33,14 +33,14 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-# Load environment variables
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+from app.config import Config
 
-DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT = int(os.getenv("DB_PORT", 3306))
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_NAME = os.getenv("DB_NAME", "meal_booking_db")
+DB_HOST = Config.DB_HOST
+DB_PORT = Config.DB_PORT
+DB_USER = Config.DB_USER
+DB_PASSWORD = Config.DB_PASSWORD
+DB_NAME = Config.DB_NAME
+DB_SSL = Config.DB_SSL
 
 EXPECTED_TABLES = [
     "Customer", "Restaurant", "Meal", "Offer", "Staff",
@@ -64,16 +64,19 @@ EXPECTED_PROCEDURES = [
 
 def get_raw_connection(include_database=True):
     """Establish a PyMySQL connection with or without specifying the target database."""
-    return pymysql.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME if include_database else None,
-        charset="utf8mb4",
-        cursorclass=pymysql.cursors.DictCursor,
-        autocommit=True
-    )
+    kwargs = {
+        "host": DB_HOST,
+        "port": DB_PORT,
+        "user": DB_USER,
+        "password": DB_PASSWORD,
+        "database": DB_NAME if include_database else None,
+        "charset": "utf8mb4",
+        "cursorclass": pymysql.cursors.DictCursor,
+        "autocommit": True
+    }
+    if DB_SSL:
+        kwargs["ssl"] = {"ssl_mode": "REQUIRED", "check_hostname": False}
+    return pymysql.connect(**kwargs)
 
 
 def parse_sql_file(filepath):

@@ -5,16 +5,20 @@ from app.config import Config
 
 def get_db_connection(database=Config.DB_NAME):
     """Establish and return a new MySQL connection using PyMySQL."""
-    return pymysql.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        user=Config.DB_USER,
-        password=Config.DB_PASSWORD,
-        database=database,
-        charset="utf8mb4",
-        cursorclass=pymysql.cursors.DictCursor,
-        autocommit=True
-    )
+    kwargs = {
+        "host": Config.DB_HOST,
+        "port": Config.DB_PORT,
+        "user": Config.DB_USER,
+        "password": Config.DB_PASSWORD,
+        "database": database,
+        "charset": "utf8mb4",
+        "cursorclass": pymysql.cursors.DictCursor,
+        "autocommit": True
+    }
+    if Config.DB_SSL:
+        kwargs["ssl"] = {"ssl_mode": "REQUIRED", "check_hostname": False}
+
+    return pymysql.connect(**kwargs)
 
 def test_db_connection():
     """

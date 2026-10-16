@@ -6,7 +6,9 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Flask 3.1](https://img.shields.io/badge/Flask-3.1-black.svg)](https://flask.palletsprojects.com/)
 [![MySQL 8.0+](https://img.shields.io/badge/MySQL-8.0%2B-orange.svg)](https://www.mysql.com/)
-[![Tests](https://img.shields.io/badge/Tests-18%20Passed-brightgreen.svg)](tests/test_app.py)
+[![WSGI](https://img.shields.io/badge/WSGI-Gunicorn-2e7d32.svg)](requirements.txt)
+[![Deploy on Render](https://img.shields.io/badge/Render-Ready-46E3B7.svg?logo=render&logoColor=white)](render.yaml)
+[![Tests](https://img.shields.io/badge/Tests-22%20Passed-brightgreen.svg)](tests/test_app.py)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Meal Booking System** is a full-featured, database-driven food discovery and ordering web platform inspired by modern consumer food delivery services. Built specifically to showcase robust **Database Management System (DBMS)** principles, the project combines industrial-strength relational schema design (3NF, domain constraints, foreign key cascades, triggers, stored procedures, and views) with an interactive, responsive web user interface.
@@ -18,7 +20,10 @@
 - **Pure Relational Database Backbone**: Backed by a normalized MySQL schema featuring 9 core tables, foreign key constraints (`CASCADE` & `SET NULL`), domain `CHECK` constraints, unique keys, and multi-query atomic transactions.
 - **Realistic Pune Eateries Catalog**: Curated sample data featuring 8 Pune restaurants and 31 authentic dishes across Pune localities (**Kothrud, Baner, Karve Nagar, Aundh, Viman Nagar, Shivajinagar, Koregaon Park, Hadapsar**).
 - **Interactive UI (No Bloated Frameworks)**: Clean, modern interface built with semantic HTML5, modern CSS3 variables, and vanilla JavaScript for dynamic cart operations, live toast notifications, Veg/Non-Veg indicators, and coupon application.
+- **Order Cancellation & Refund Tracking**: Customer self-service order cancellation workflow with instant status progression (`Cancelled`, `Refunded`), accessible confirmation dialogs, and refund status tracking.
 - **Built-in CLI Database Manager (`database/init_db.py`)**: Reproducible, idempotent setup and health verification utility with automatic delimiter handling for triggers and stored procedures.
+- **Render & Cloud Production-Ready**: Production-grade Gunicorn WSGI configuration, Infrastructure-as-Code `render.yaml` Blueprint, `/health` monitoring endpoint, and cloud MySQL SSL connectivity.
+- **Hardened Security & Error Handling**: Strict cookie protection (`HttpOnly`, `SameSite=Lax`), parameterized SQL execution preventing SQL injection, and custom branded 404/500 error pages.
 - **Pre-Flight Diagnostics on Startup**: `python run.py` automatically validates database connectivity and schema readiness before launching the server, displaying troubleshooting advice if MySQL is unreachable.
 - **1-Click Test Personas**: Instant login buttons for both **Customer** and **Administrator** roles with pre-loaded order histories and analytics.
 
@@ -29,9 +34,10 @@
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
 | **Backend** | Python 3.10+, Flask 3.1 | Modular route blueprints, session management, secure cookie handling |
+| **WSGI Server** | Gunicorn 26.2 | Production HTTP and WSGI server for concurrency on Render and Linux |
 | **Database** | MySQL 8.0+ / 9.x | Relational storage, integrity constraints, ACID transactions, stored routines |
-| **Driver** | PyMySQL 1.1 + Cryptography | Pure Python MySQL driver supporting dictionary cursors and modern auth (`caching_sha2_password`) |
-| **Configuration** | python-dotenv 1.0 | Environment-based configuration loaded securely from `.env` |
+| **Driver** | PyMySQL 1.1 + Cryptography | Pure Python MySQL driver supporting dictionary cursors and modern auth (`caching_sha2_password`, SSL) |
+| **Configuration** | python-dotenv 1.0 | Environment-based configuration loaded securely from `.env` or system environment |
 | **Frontend** | HTML5, CSS3, Vanilla JavaScript | Responsive grid, cards, interactive modals, toasts, badge indicators |
 | **Design & Typography** | Font Awesome 6, Plus Jakarta Sans | Modern culinary aesthetic and typography |
 
@@ -513,15 +519,141 @@ The application includes 1-click test login buttons on the Login page (`/login`)
 
 ## 🧪 Testing
 
-The repository includes comprehensive automated unit and integration tests covering database connectivity, routing, cart logic, coupon validation, triggers, views, and stored procedures:
+The repository includes 22 automated unit and integration tests covering database connectivity, routing, cart logic, coupon validation, triggers, views, stored procedures, error handlers, and cloud health checks:
 
 ```bash
-# Run complete test suite
+# Run the complete test suite
 python -m unittest -v tests/test_app.py
 
 # Run database health check
 python database/init_db.py --check
 ```
+
+### Test Suite Coverage (22 Tests)
+
+| # | Test Method Name | Target Layer | Verification |
+| :-: | :--- | :--- | :--- |
+| **01** | `test_01_database_connection` | Database Driver | PyMySQL connection pool and dictionary cursor functionality |
+| **02** | `test_02_home_page` | Web Routing | Hero section, active Pune eatery cards, categories, and offers |
+| **03** | `test_03_restaurant_listing_and_filter` | Controller | Restaurant listing, location filtering, and cuisine search |
+| **04** | `test_04_restaurant_detail` | Controller | Restaurant detail page and categorized menu dish rendering |
+| **05** | `test_05_meal_listing_search_and_sort` | Customer Flow | Meal catalog keyword search, veg toggle, and price/rating sorting |
+| **06** | `test_06_meal_details` | Relational Joins | Individual meal detail view with verified customer reviews |
+| **07** | `test_07_cart_operations` | Session | Add to cart, quantity increments/decrements, item removal, offer apply |
+| **08** | `test_08_offer_validations` | Business Logic | Offer validity rules: invalid codes, expired codes, and minimum cart amounts |
+| **09** | `test_09_auth_registration_and_login` | Auth & Security | Customer registration, Werkzeug password hashing, login, and session logout |
+| **10** | `test_10_checkout_and_booking_creation` | ACID Transactions | Atomic checkout placing Booking, Booking_Item, and Payment records |
+| **11** | `test_11_feedback_and_triggers` | SQL Triggers | Delivery lifecycle completion, feedback rating submission, and triggers |
+| **12** | `test_12_profile_and_aggregates` | SQL Aggregates | Customer profile order statistics with `COUNT()`, `SUM()`, and `AVG()` |
+| **13** | `test_13_admin_crud_and_analytics` | Admin Portal | Role-based admin access, restaurant/meal/offer CRUD, and KPI metrics |
+| **14** | `test_14_stored_procedures` | SQL Routines | Direct execution of `sp_get_admin_dashboard_stats` & `sp_get_restaurant_analytics` |
+| **15** | `test_15_test_db_connection_diagnostic` | Diagnostics | Pre-flight database diagnostic check and table verification |
+| **16** | `test_16_views_direct_queries` | SQL Views | Direct queries on database views `v_active_meals`, `v_order_summary`, etc. |
+| **17** | `test_17_env_example_matches_config` | Configuration | Environment configuration matches between `.env.example` and `Config` |
+| **18** | `test_18_init_db_parser` | CLI Tools | SQL parser splits multi-statement triggers & procedures with `DELIMITER` |
+| **19** | `test_19_health_endpoint` | Cloud Readiness | JSON `/health` diagnostic endpoint reporting DB status and UTC timestamps |
+| **20** | `test_20_order_cancellation_workflow` | Customer Flow | Self-service cancellation for Pending/Confirmed orders and refund simulation |
+| **21** | `test_21_database_url_parsing` | Cloud Config | Standard `DATABASE_URL` string parsing (host, port, credentials, DB) |
+| **22** | `test_22_custom_error_handlers` | Security & UX | Branded 404 & 500 error templates suppressing internal stack traces |
+
+---
+
+## 🚀 Deploying to Render
+
+The Meal Booking System is architected for zero-friction cloud deployment on [Render](https://render.com/).
+
+### Architecture Note: MySQL on Cloud
+> [!IMPORTANT]
+> Render provides managed PostgreSQL instances, but this project requires **MySQL 8.0+** because of its native MySQL stored procedures (`CALL sp_...`), triggers, views, and PyMySQL driver.
+> 
+> For cloud deployment, pair Render's Web Service with a managed MySQL database from:
+> - **[Aiven for MySQL](https://aiven.io/)** (Free tier available, fully managed MySQL 8 with SSL)
+> - **[TiDB Cloud](https://tidbcloud.com/)** (Serverless Free tier, 100% MySQL 8 compatible)
+> - **[Railway](https://railway.app/)** (1-click MySQL template)
+> - **[PlanetScale](https://planetscale.com/)** or **AWS RDS**
+
+---
+
+### Step-by-Step Deployment Guide
+
+#### 1. Set Up Your Cloud MySQL Database
+1. Create a free account on **[Aiven](https://aiven.io/)** or **[TiDB Cloud](https://tidbcloud.com/)**.
+2. Provision a new **MySQL 8.0** service (e.g. named `meal-booking-db`).
+3. Note your connection details:
+   - **Host** (e.g. `mysql-xyz.aivencloud.com`)
+   - **Port** (e.g. `12345` or `3306`)
+   - **User** (e.g. `avnadmin` or `root`)
+   - **Password**
+   - **Database Name** (e.g. `defaultdb` or `meal_booking_db`)
+   - **SSL**: Enabled (`DB_SSL=1`)
+
+#### 2. Initialize the Remote Database
+Before launching the web service, populate the remote database with schema, views, triggers, stored procedures, and Pune seed data:
+
+```bash
+# Temporarily set your cloud credentials in your local environment
+export DB_HOST="your-cloud-mysql-host.com"
+export DB_PORT="12345"
+export DB_USER="your-db-user"
+export DB_PASSWORD="your-db-password"
+export DB_NAME="meal_booking_db"
+export DB_SSL="1"
+
+# Run the idempotent database initializer against your remote instance
+python database/init_db.py --check
+python database/init_db.py
+```
+
+---
+
+#### 3. Deploy on Render
+
+##### Option A: Deploy with Blueprint (Recommended)
+This repository includes a [`render.yaml`](render.yaml) specification:
+
+1. Push your repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com/), click **New +** &rarr; **Blueprint**.
+3. Connect your GitHub repository: `Meal-Booking-System`.
+4. Render will parse `render.yaml` and prompt for the database environment variables.
+5. Enter your Cloud MySQL credentials and click **Apply**. Render will automatically build, test, and launch the service.
+
+##### Option B: Manual Web Service Setup
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** &rarr; **Web Service**.
+2. Connect your GitHub repository `Meal-Booking-System`.
+3. Configure the service settings:
+   - **Name**: `meal-booking-system`
+   - **Region**: Choose the region closest to your database (e.g., Frankfurt, Singapore, Oregon)
+   - **Branch**: `main`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn run:app --bind 0.0.0.0:$PORT`
+   - **Instance Type**: `Free`
+4. Expand **Advanced** and set:
+   - **Health Check Path**: `/health`
+5. Under **Environment Variables**, add:
+
+| Variable | Value / Description | Example |
+| :--- | :--- | :--- |
+| `FLASK_ENV` | Environment mode | `production` |
+| `SECRET_KEY` | Strong random token for session encryption | *(Generate via `python -c "import secrets; print(secrets.token_hex(32))"`)* |
+| `DB_HOST` | Remote MySQL host | `mysql-xyz.aivencloud.com` |
+| `DB_PORT` | Remote MySQL port | `3306` or `12345` |
+| `DB_NAME` | Remote MySQL database name | `meal_booking_db` |
+| `DB_USER` | Remote MySQL username | `avnadmin` |
+| `DB_PASSWORD` | Remote MySQL password | `your-secret-password` |
+| `DB_SSL` | Enable SSL for cloud connections | `1` |
+| *or* `DATABASE_URL` | Combined connection URL format | `mysql://user:pass@host:port/dbname` |
+
+6. Click **Create Web Service**. Render will install dependencies, run Gunicorn, and verify the `/health` endpoint.
+
+---
+
+### Verifying the Live Deployment
+
+Once deployed, test your live Render URL:
+- **Application Home**: `https://<your-service-name>.onrender.com/`
+- **Health Diagnostic**: `https://<your-service-name>.onrender.com/health` (should return HTTP 200 with `{"status": "healthy"}`)
+- **One-Click Demo Accounts**: Log in instantly with `rahul.sharma@example.com` or `admin@mealbooking.com` (password: `password123`).
 
 ---
 

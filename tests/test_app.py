@@ -413,5 +413,66 @@ class MealBookingSystemTestCase(unittest.TestCase):
         self.assertEqual(len(report["triggers"]), 3)
         self.assertEqual(len(report["procedures"]), 4)
 
+    def test_19_health_endpoint(self):
+        """Verify production /health endpoint returns 200 and JSON status."""
+        response = self.client.get("/health")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(data["status"], "healthy")
+        self.assertTrue(data["database"]["connected"])
+        self.assertEqual(data["database"]["table_count"], 9)
+
+    def test_20_order_cancellation_workflow(self):
+        """Verify order cancellation for Pending/Confirmed orders and refund simulation."""
+        # Login as customer
+        self.client.get("/demo-login/customer", follow_redirects=True)
+
+        # Create a confirmed booking
+        self.client.post("/cart/add", data={"meal_id": 1, "quantity": 1}, follow_redirects=True)
+        res_chk = self.client.post("/checkout", data={
+            "phone": "9822012345",
+            "delivery_address": "Test Kothrud Pune",
+            "payment_method": "UPI",
+            "special_instructions": "Test cancel order"
+        }, follow_redirects=True)
+        self.assertEqual(res_chk.status_code, 200)
+
+        # Find the latest booking
+        booking = query_db("SELECT * FROM Booking ORDER BY booking_id DESC LIMIT 1", one=True)
+        self.assertEqual(booking["status"], "Confirmed")
+
+        # Cancel the booking
+        res_cancel = self.client.post(f"/orders/{booking['booking_code']}/cancel", follow_redirects=True)
+        self.assertEqual(res_cancel.status_code, 200)
+        self.assertIn(b"successfully cancelled", res_cancel.data)
+
+        # Verify DB status
+        updated_booking = query_db("SELECT status, payment_status FROM Booking WHERE booking_id = %s", (booking["booking_id"],), one=True)
+        self.assertEqual(updated_booking["status"], "Cancelled")
+
+        payment = query_db("SELECT payment_status FROM Payment WHERE booking_id = %s", (booking["booking_id"],), one=True)
+        self.assertEqual(payment["payment_status"], "Refunded")
+
+        # Re-cancelling should be rejected cleanly
+        res_re_cancel = self.client.post(f"/orders/{booking['booking_code']}/cancel", follow_redirects=True)
+        self.assertIn(b"cannot be cancelled", res_re_cancel.data)
+
+    def test_21_database_url_parsing(self):
+        """Verify that urlparse correctly extracts components from DATABASE_URL."""
+        from urllib.parse import urlparse, unquote
+        test_url = "mysql://render_user:p%40ssword123@dbs.render.com:3308/production_meal_db"
+        parsed = urlparse(test_url)
+        self.assertEqual(unquote(parsed.username), "render_user")
+        self.assertEqual(unquote(parsed.password), "p@ssword123")
+        self.assertEqual(parsed.hostname, "dbs.render.com")
+        self.assertEqual(parsed.port, 3308)
+        self.assertEqual(parsed.path.lstrip("/"), "production_meal_db")
+
+    def test_22_custom_error_handlers(self):
+        """Verify custom 404 handler returns styled 404 page."""
+        response = self.client.get("/non-existent-route-for-testing-404")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn(b"Dish or Page Not Found (404)", response.data)
+
 if __name__ == "__main__":
     unittest.main()

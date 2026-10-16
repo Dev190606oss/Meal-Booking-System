@@ -1,6 +1,6 @@
 from flask import Flask, session
 from app.config import Config
-from datetime import datetime
+from datetime import datetime, timezone
 
 def create_app():
     app = Flask(__name__)
@@ -51,5 +51,33 @@ def create_app():
             },
             "cart_count": total_items
         }
+
+    # Production Health Check Endpoint (For Render, Kubernetes, uptime monitors)
+    @app.route("/health")
+    def health_check():
+        from app.db import test_db_connection
+        db_status = test_db_connection()
+        is_healthy = db_status["connected"] and db_status["database_exists"]
+        status_code = 200 if is_healthy else 503
+        return {
+            "status": "healthy" if is_healthy else "degraded",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "database": {
+                "connected": db_status["connected"],
+                "database_exists": db_status["database_exists"],
+                "table_count": db_status["table_count"]
+            }
+        }, status_code
+
+    # Error Handlers
+    @app.errorhandler(404)
+    def handle_not_found(e):
+        from flask import render_template
+        return render_template("404.html"), 404
+
+    @app.errorhandler(500)
+    def handle_server_error(e):
+        from flask import render_template
+        return render_template("500.html"), 500
 
     return app

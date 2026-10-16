@@ -563,6 +563,49 @@ def order_detail(booking_code):
         booking_feedback=booking_feedback
     )
 
+@customer_bp.route("/orders/<booking_code>/cancel", methods=["POST"])
+@login_required
+def cancel_order(booking_code):
+    """Allows customer to cancel a booking if it is still in Pending or Confirmed status."""
+    booking = query_db(
+        "SELECT booking_id, customer_id, status, payment_method, payment_status FROM Booking WHERE booking_code = %s",
+        (booking_code,),
+        one=True
+    )
+    if not booking:
+        flash("Order not found.", "danger")
+        return redirect(url_for("customer.orders"))
+
+    # Security check: must belong to the logged-in customer (or an admin)
+    if booking["customer_id"] != session["customer_id"] and not session.get("is_admin"):
+        flash("You are not authorized to cancel this order.", "danger")
+        return redirect(url_for("customer.orders"))
+
+    # Only Pending or Confirmed orders can be cancelled
+    if booking["status"] not in ["Pending", "Confirmed"]:
+        flash(f"Order #{booking_code} cannot be cancelled because it is already {booking['status']}.", "warning")
+        return redirect(url_for("customer.order_detail", booking_code=booking_code))
+
+    try:
+        new_pay_status = "Refunded" if booking["payment_status"] == "Paid" else "Cancelled"
+        with get_transaction_cursor() as cursor:
+            # 1. Update booking status and payment status
+            cursor.execute(
+                "UPDATE Booking SET status = 'Cancelled', payment_status = %s WHERE booking_id = %s",
+                (new_pay_status, booking["booking_id"])
+            )
+            # 2. Update payment table
+            cursor.execute(
+                "UPDATE Payment SET payment_status = %s WHERE booking_id = %s",
+                (new_pay_status, booking["booking_id"])
+            )
+
+        flash(f"Order #{booking_code} has been successfully cancelled.", "info")
+    except Exception as e:
+        flash(f"Error cancelling order: {str(e)}", "danger")
+
+    return redirect(url_for("customer.order_detail", booking_code=booking_code))
+
 # -------------------------------------------------------------------------
 # 8. FEEDBACK SUBMISSION
 # -------------------------------------------------------------------------

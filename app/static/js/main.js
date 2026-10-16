@@ -182,4 +182,13 @@ function initModals() {
       }
     });
   });
+
+  // Close modals on Escape key press
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal-overlay.open").forEach((modal) => {
+        modal.classList.remove("open");
+      });
+    }
+  });
 }

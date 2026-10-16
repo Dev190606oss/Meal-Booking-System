@@ -1,0 +1,34 @@
+# ==========================================================
+# Render Blueprint Specification (render.yaml)
+# Meal Booking System - Smart Discovery & Booking Platform
+# ==========================================================
+
+services:
+  - type: web
+    name: meal-booking-system
+    runtime: python
+    plan: free
+    region: oregon # or frankfurt, singapore, etc.
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: SECRET_KEY
+        generateValue: true
+      # Database Connection: You can supply either DATABASE_URL or individual DB_* credentials
+      # Compatible with managed MySQL providers (Aiven for MySQL, PlanetScale, Railway, TiDB Cloud)
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: "meal_booking_db"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSL
+        value: "1"
